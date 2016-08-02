@@ -25,27 +25,37 @@
     (println)
     (print-results results)))
 
-(def results {:total-time "10s",
-              :average-time "506ms",
-              :successes 0,
-              :redirects 0,
-              :errors 20,
-              :breakdowns '([50 449]
-                             [60 450]
-                             [70 451]
-                             [80 451]
-                             [90 459]
-                             [95 463]
-                             [99 463]
-                             [100 1582]),
-              :qps 1.9762846})
+
+(defn usage [options-summary]
+  (->> [
+        ""
+        "Usage: program-name [options]"
+        ""
+        "Options:"
+        options-summary
+        ]
+       (string/join \newline)))
+
+(defn error-msg [errors]
+  (str "The following errors occurred while parsing your command:\n\n"
+       (string/join \newline errors)))
+
+(defn exit [status msg]
+  (println msg)
+  (System/exit status))
+
 (defn -main [& args]
-  (let [[options args banner] (cmdline/cli args
+  (let [{:keys [options arguments errors summary]} (cmdline/parse-opts args
                                            ["-c" "--config-file" "Configuration file"]
-                                           ["-n" "-num-requests" "Number of requests" :parse-fn #(Integer. %)])
+                                           ["-n" "-num-requests" "Number of requests" :parse-fn #(Integer/parseInt %)])
         file-sep (System/getProperty "file.separator")
         pwd (System/getProperty "user.dir")
         config-file (str pwd file-sep (:config-file options))]
+
+    (cond
+      (:help options) (exit 0 (usage summary))
+      (not= (count arguments) 0) (exit 1 (usage summary))
+      errors (exit 1 (error-msg errors)))
 
     (clobber-that-url config-file (:num-requests options))))
 
