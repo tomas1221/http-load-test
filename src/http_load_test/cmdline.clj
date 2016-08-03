@@ -46,8 +46,9 @@
 
 (defn -main [& args]
   (let [{:keys [options arguments errors summary]} (cmdline/parse-opts args
-                                           ["-c" "--config-file" "Configuration file"]
-                                           ["-n" "-num-requests" "Number of requests" :parse-fn #(Integer/parseInt %)])
+                                           [["-c" "--config-file configure-file" "Configuration file"]
+                                            ["-h" "--help" "display help"]
+                                            ["-n" "--num-requests NUMBER" "Number of requests" :parse-fn #(Integer/parseInt %)]])
         file-sep (System/getProperty "file.separator")
         pwd (System/getProperty "user.dir")
         config-file (str pwd file-sep (:config-file options))]
